@@ -1,39 +1,58 @@
+import js.WithTranslationProps
+import js.i18next
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
 import react.RBuilder
 import react.RComponent
-import react.RProps
 import react.RState
+import react.dom.button
 import react.dom.div
 import react.dom.input
+import react.setState
+import react.child as childFunctional
 
-external interface WelcomeProps : RProps {
-    var name: String
+interface WelcomeProps : WithTranslationProps {
 }
 
-data class WelcomeState(val name: String) : RState
+data class WelcomeState(var lng: String, var inputValue: String) : RState
 
 class Welcome(props: WelcomeProps) : RComponent<WelcomeProps, WelcomeState>(props) {
-
-    init {
-        state = WelcomeState(props.name)
+    override fun WelcomeState.init(props: WelcomeProps) {
+        lng = i18next.language
+        inputValue = ""
     }
 
     override fun RBuilder.render() {
         div {
-            +"Hello, ${state.name}"
+            +"currentLanguage = ${state.lng}"
         }
-        input {
+        childFunctional(TestMessage) {}
+        input(InputType.text) {
             attrs {
-                type = InputType.text
-                value = state.name
-                onChangeFunction = { event ->
-                    setState(
-                        WelcomeState(name = (event.target as HTMLInputElement).value)
-                    )
+                placeholder = "Enter new language..."
+                value = state.inputValue
+                onChangeFunction = {
+                    val input = it.target as HTMLInputElement
+                    setState {
+                        inputValue = input.value
+                    }
                 }
             }
+        }
+        button {
+            attrs {
+                onClickFunction = {
+                    it.preventDefault()
+
+                    i18next.changeLanguage(state.inputValue)
+                    setState {
+                        lng = inputValue
+                    }
+                }
+            }
+            +"Change language"
         }
     }
 }
